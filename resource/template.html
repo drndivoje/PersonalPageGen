@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ {{.HeadMetadata}}
+ {{ if .MainPage }}
+        <style>
+        .container {
+            font-size: 1.5em;
+        }
+        </style>
+    {{ end }}
+</head>
+<body>
+    {{.Header}}
+ 
+    <div class="container">
+        {{.PageDetails}}
+        <p>{{.Content}}</p>
+    </main>
+    {{.Footer}}
+</body>
+</html>
