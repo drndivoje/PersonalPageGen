@@ -1,0 +1,6 @@
+domain: localhost
+footer: '&copy; 2025 Max Mustermann'
+author: Max Mustermann
+menu:
+  - title: About
+    path: about

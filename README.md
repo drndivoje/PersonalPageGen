@@ -1,6 +1,6 @@
 # PersonalPageGen
 
-PersonalPageGen is a command-line application that generates a static website from markdown files. This tool helps you quickly create and deploy a personal webpage.
+PersonalPageGen is a command-line application that generates a static website from markdown files. This tool helps you quickly create and deploy a personal blog as a static website.
 
 ## Input file structure
 
@@ -18,7 +18,8 @@ menu:
 - `author`: Your name.
 - `menu`: A list of menu items that will be rendered as a horizontal menu bar. `title` is the label for each menu item, and `path` is the path to the corresponding page.
 
-The input folder should also contain a `blog` subfolder where your blog posts are stored.
+The input folder should also contain a `blog` subfolder where your blog posts are stored. 
+Please check the example folder with 
 
 ## Installation
 
@@ -30,10 +31,17 @@ cd PersonalPageGen
 go build
 ```
 
-Run the program
+Generate the static web site from example folder
 ```sh
-ppg <path_to_your_markdown_files>
+ppg example
 ```
+
+or run
+
+```sh
+go run . example
+```
+the site will be inside the output folder.
 
 ## Development Status
 
