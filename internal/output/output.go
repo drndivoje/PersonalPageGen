@@ -1,8 +1,8 @@
 package output
 
 import (
-	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -10,7 +10,7 @@ import (
 func CreateDir(path string) {
 	err := os.MkdirAll(path, 0755)
 	if err != nil && !os.IsExist(err) {
-		fmt.Println("Error creating output directory:", err)
+		log.Printf("Failed to create directory %s: %v", path, err)
 		return
 	}
 }
@@ -19,22 +19,26 @@ func CopyStaticFiles(inputFolder string) error {
 	// Copy images
 	srcImagesPath := filepath.Join(inputFolder, "images")
 	dstImagesPath := "output/images"
-
-	if err := CopyFiles(srcImagesPath, dstImagesPath); err != nil {
-		return err
+	if _, err := os.Stat(srcImagesPath); os.IsNotExist(err) {
+		log.Println("Source images folder does not exist:", srcImagesPath)
+	} else {
+		if err := copyFiles(srcImagesPath, dstImagesPath); err != nil {
+			return err
+		}
 	}
+
 	// Copy CSS
-	if err := CopyFiles("resource/main.css", "output/css/main.css"); err != nil {
+	if err := copyFiles("resource/main.css", "output/css/main.css"); err != nil {
 		return err
 	}
 	// Copy Icons
-	if err := CopyFiles("resource/icons", "output/icons"); err != nil {
+	if err := copyFiles("resource/icons", "output/icons"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func CopyFiles(srcImagesPath, dstImagesPath string) error {
+func copyFiles(srcImagesPath, dstImagesPath string) error {
 	return filepath.Walk(srcImagesPath, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
