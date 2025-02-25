@@ -25,4 +25,5 @@ go.work.sum
 .env
 ppg
 output/**
+.vscode/**
 

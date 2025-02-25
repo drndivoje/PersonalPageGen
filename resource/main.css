@@ -75,11 +75,12 @@ a:hover {
     }
     .menu {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
     }
     .menu li {
-        margin: 10px 0;
+        margin: 5px 0;
+        font-size: 0.9em;
     }
 }
 
@@ -109,15 +110,4 @@ nav {
 
 .menu a:hover {
     text-decoration: underline;
-}
-
-@media (max-width: 600px) {
-    .menu {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .menu a {
-        padding: 10px 0;
-    }
 }
