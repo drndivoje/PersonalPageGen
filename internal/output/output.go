@@ -35,6 +35,26 @@ func CopyStaticFiles(inputFolder string) error {
 	if err := copyFiles("resource/icons", "output/icons"); err != nil {
 		return err
 	}
+
+	//Copy favicon
+
+	if err := copyFavicon(inputFolder + "/favicon.ico"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func copyFavicon(filename string) error {
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		log.Println("Cannot find favicon under :", filename)
+		return nil
+	}
+	if err := copyFiles(filename, "output/favicon.ico"); err != nil {
+		return err
+	}
+
 	return nil
 }
 
