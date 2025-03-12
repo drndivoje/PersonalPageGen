@@ -4,7 +4,8 @@ PersonalPageGen is a command-line application that generates a static website fr
 
 ## Input file structure
 
-To use PersonalPageGen, ensure that your input folder contains a `config.yaml` file with the following structure:
+
+The input folder is where all your content for the static website in markdown format is stored. To use PersonalPageGen, ensure that your input folder contains a `config.yaml` file with the following structure:
 ```yaml
 domain: <your domain>
 author: <your name>
@@ -18,8 +19,20 @@ menu:
 - `author`: Your name.
 - `menu`: A list of menu items that will be rendered as a horizontal menu bar. `title` is the label for each menu item, and `path` is the path to the corresponding page.
 
-The input folder should also contain a `blog` subfolder where your blog posts are stored. 
-Please check the example folder with 
+The sample page in markdown format look like:
+```
++++
+title=Page title
+date=2025-02-24
++++
+
+Your content goes here
+The header of the page is enclosed between `+++` characters. The header contains the following properties:
+- **title**: The title of the page.
+- **date**: The date when the page is published.
+
+
+Since PersonalPageGen is designed for personal websites, which typically include blog pages, the input folder should also contain a `blog` subfolder where your blog posts are stored.
 
 ## Installation
 
@@ -45,5 +58,5 @@ the site will be inside the output folder.
 
 ## Development Status
 
-This program is still in development. Contributions and feedback are welcome!
+PersonalPageGen is still a work in progress. Theming is not yet supported, and custom CSS must be manually adapted. If you want to apply your own CSS styles, you need to modify `resource/main.css`.
 
