@@ -41,20 +41,14 @@ To install PersonalPageGen, clone the repository and build the application:
 ```sh
 git clone https://github.com/yourusername/PersonalPageGen.git
 cd PersonalPageGen
-go build
 ```
-
-Generate the static web site from example folder
-```sh
-ppg example
-```
-
-or run
+To build the static website from the files inside the example folder and deploy it on an Nginx container locally, follow these steps. The local setup uses self-signed certificates, so you will need to trust the certificate before accessing the website locally at `https://localhost`.
 
 ```sh
-go run . example
+make run
 ```
-the site will be inside the output folder.
+
+After running the command, open your browser and navigate to `https://localhost`. Since the setup uses self-signed certificates, you will need to add an exception in your browser to trust the certificate.
 
 ## Development Status
 
