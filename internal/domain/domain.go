@@ -47,7 +47,7 @@ func (p Page) GetAuthor() string {
 	if !ok {
 		return "Unknown"
 	}
-	return author
+	return author.getValue()
 }
 
 func (p Page) GetDesctiption() string {
@@ -55,7 +55,7 @@ func (p Page) GetDesctiption() string {
 	if !ok {
 		return "Unknown"
 	}
-	return description
+	return description.getValue()
 }
 
 func (p Page) writeToOutput(config ConfigFile) error {
@@ -63,7 +63,7 @@ func (p Page) writeToOutput(config ConfigFile) error {
 	filePath := "output/" + p.Path + "/index.html"
 	pageMetaData := ""
 	if p.PublishDate != 0 {
-		pageMetaData = template.GetPageDetails(p.PublishDate)
+		pageMetaData = template.GetPageDetails(p.PublishDate, p.Header.getTags())
 	}
 	data := template.PageData{
 		Header:       template.GetHeader(template.HeaderData{DomainUrl: config.getDomainUrl(), Menu: toMenuItem(config)}),
@@ -72,6 +72,7 @@ func (p Page) writeToOutput(config ConfigFile) error {
 		PageDetails:  pageMetaData,
 		HeadMetadata: getHeadMetaData(p, config.getDomainUrl()),
 		MainPage:     p.isMainPage(),
+		Tags:         p.Header.getTags(),
 	}
 	pageHtml := template.ParseTemplate("template.html", data)
 	if p.isMainPage() {
@@ -81,7 +82,7 @@ func (p Page) writeToOutput(config ConfigFile) error {
 	}
 	err := os.WriteFile(filePath, []byte(pageHtml), 0644)
 	if err != nil {
-		log.Println("Error writing to file:", err)
+		log.Println("Error writing page ["+p.Title+"] to the file:", err)
 		return err
 	}
 	return nil
@@ -119,15 +120,55 @@ func (w *WebSite) WriteToOutputFolder() {
 	output.CopyStaticFiles(w.InputFolder)
 
 	var pageItems []template.PageItemData
+	tagtoPagesMap := make(map[string][]template.PageItemData)
+
 	for _, page := range w.blogPages {
 		pageItem := template.PageItemData{
 			Title: page.Title,
 			Date:  time.Unix(page.PublishDate, 0).Format("January 2, 2006"),
 			Url:   page.Path,
+			Tags:  page.Header.getTags(),
 		}
 		pageItems = append(pageItems, pageItem)
+		for _, tag := range page.Header.getTags() {
+			tagtoPagesMap[tag] = append(tagtoPagesMap[tag], template.PageItemData{
+				Title: page.Title,
+				Date:  time.Unix(page.PublishDate, 0).Format("January 2, 2006"),
+				Url:   page.Path,
+				Tags:  page.Header.getTags(),
+			})
+		}
 	}
-	var pageListData = template.PageListData{
+	var pageListData = createPageListData(pageItems, *w)
+	err := writePageList(pageListData, filepath.Join("output", "blog"))
+	if err != nil {
+		log.Println("Error writing blog pages", err)
+		return
+	}
+	for tag, pages := range tagtoPagesMap {
+		taggedPageLisData := createPageListData(pages, *w)
+		err := writePageList(taggedPageLisData, filepath.Join("output", "tags", tag))
+		if err != nil {
+			log.Println("Error writing tag pages", err)
+			return
+		}
+	}
+	log.Println("Website generated successfully!")
+
+}
+
+func writePageList(pages template.PageListData, path string) error {
+	pageListHtml := template.ParseTemplate("list.html", pages)
+	output.CreateDir(path)
+	err := os.WriteFile(path+"/index.html", []byte(pageListHtml), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func createPageListData(pageItems []template.PageItemData, w WebSite) template.PageListData {
+	return template.PageListData{
 		Header: template.GetHeader(template.HeaderData{DomainUrl: w.getDomainUrl(), Menu: toMenuItem(*w.ConfigFile)}),
 		Pages:  pageItems,
 		Footer: template.GetFooter(w.ConfigFile.Footer),
@@ -139,16 +180,6 @@ func (w *WebSite) WriteToOutputFolder() {
 				Author:      w.ConfigFile.Author,
 			}),
 	}
-	pageListHtml := template.ParseTemplate("list.html", pageListData)
-	outputPath := filepath.Join("output", "blog", "index.html")
-	output.CreateDir(filepath.Dir(outputPath))
-	err := os.WriteFile(outputPath, []byte(pageListHtml), 0644)
-	if err != nil {
-		log.Println("Error writing to file:", err)
-		return
-	}
-	log.Println("Website generated successfully")
-
 }
 
 func getHeadMetaData(page Page, domainUrl string) string {
@@ -162,11 +193,11 @@ func getHeadMetaData(page Page, domainUrl string) string {
 	)
 }
 
-func (w *WebSite) getDomainUrl() string {
+func (w WebSite) getDomainUrl() string {
 	return "http://" + w.ConfigFile.Domain
 }
 
-func (w WebSite) String() string {
+func (w *WebSite) String() string {
 	return fmt.Sprintf("Pages: %v\nConfigFile: %v", len(w.pages), w.ConfigFile)
 }
 
@@ -209,30 +240,65 @@ func parseHeader(content []byte) (Header, error) {
 		return Header{}, fmt.Errorf("header does not start with +++")
 	}
 
-	header := Header{Attributes: make(map[string]string)}
+	header := Header{Attributes: make(map[string]HeaderAttribute)}
 	for _, line := range lines[1:] {
 
 		if line == headerDelimiter {
 			break
 		}
-		line = strings.TrimSpace(line)
-		if line == "" {
+		headerAttribute, err := parseHeaderAttribute(line)
+		if err != nil {
+			log.Printf("Warning: cannot parse line: %s\n", err.Error())
 			continue
 		}
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) != 2 {
-			log.Printf("Warning: cannot parse line: %s\n", line)
-			continue
-		}
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-		header.Attributes[key] = value
+		header.Attributes[headerAttribute.name] = headerAttribute
 	}
 	return header, nil
 }
 
+func parseHeaderAttribute(line string) (HeaderAttribute, error) {
+	line = strings.TrimSpace(line)
+	if line == "" {
+		return HeaderAttribute{}, fmt.Errorf("empty line")
+	}
+	parts := strings.SplitN(line, "=", 2)
+	if len(parts) != 2 {
+		return HeaderAttribute{}, fmt.Errorf("cannot parse line: %s", line)
+	}
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+	if value == "" {
+		return HeaderAttribute{}, fmt.Errorf("value cannot be an empty string")
+	}
+	if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
+		value = strings.Trim(value, "[]")
+		values := strings.Split(value, ",")
+		for i := range values {
+			values[i] = strings.TrimSpace(values[i])
+		}
+		return HeaderAttribute{name: key, values: values}, nil
+	} else if strings.HasPrefix(value, "[") || strings.HasSuffix(value, "]") {
+		return HeaderAttribute{}, fmt.Errorf("invalid list format")
+	}
+
+	return HeaderAttribute{name: key, values: []string{value}}, nil
+}
+
 type Header struct {
-	Attributes map[string]string
+	Attributes map[string]HeaderAttribute
+}
+
+type HeaderAttribute struct {
+	name   string
+	values []string
+}
+
+func (h HeaderAttribute) getValue() string {
+	return h.values[0]
+}
+
+func (h HeaderAttribute) getValues() []string {
+	return h.values
 }
 
 func (h Header) getTitle() string {
@@ -240,8 +306,15 @@ func (h Header) getTitle() string {
 	if !ok {
 		return ""
 	}
-	title = strings.ReplaceAll(title, "\"", "")
-	return title
+	return strings.ReplaceAll(title.getValue(), "\"", "")
+}
+
+func (h Header) getTags() []string {
+	tags, ok := h.Attributes["tags"]
+	if !ok {
+		return []string{}
+	}
+	return tags.getValues()
 }
 
 func getDate(header Header) int64 {
@@ -250,7 +323,7 @@ func getDate(header Header) int64 {
 		return 0
 	}
 	layout := "2006-01-02"
-	parsedDate, err := time.Parse(layout, date)
+	parsedDate, err := time.Parse(layout, date.getValue())
 	if err != nil {
 		log.Println("Error parsing date:", err)
 		return 0

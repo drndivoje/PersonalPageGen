@@ -15,6 +15,7 @@ type PageData struct {
 	PageDetails  string
 	HeadMetadata string
 	MainPage     bool
+	Tags         []string
 }
 
 type PageListData struct {
@@ -28,6 +29,7 @@ type PageItemData struct {
 	Title string
 	Url   string
 	Date  string
+	Tags  []string
 }
 type MenuItem struct {
 	Title string
@@ -41,6 +43,7 @@ type HeaderData struct {
 
 type PageDetails struct {
 	PublishDateString string
+	Tags              []string
 }
 
 type HeadMetadata struct {
@@ -73,8 +76,11 @@ func GetFooter(data string) string {
 	return ParseTemplate("footer.html", FooterData{Data: data})
 }
 
-func GetPageDetails(date int64) string {
-	return ParseTemplate("page-metadata.html", PageDetails{PublishDateString: time.Unix(date, 0).Format("January 2, 2006")})
+func GetPageDetails(date int64, tags []string) string {
+	return ParseTemplate("page-metadata.html",
+		PageDetails{
+			PublishDateString: time.Unix(date, 0).Format("January 2, 2006"),
+			Tags:              tags})
 }
 
 func GetHeadMetada(headMetadata HeadMetadata) string {

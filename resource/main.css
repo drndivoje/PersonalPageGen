@@ -36,6 +36,35 @@ code {
     white-space: pre-wrap; /* Wrap text to fit within the container */
     word-wrap: break-word; /* Break long words to fit within the container */
 }
+.post-meta {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+    font-style: italic;
+}
+
+.tags {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+.tag {
+    display: inline-block;
+    padding: 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+.tag:hover {
+    background-color: #d8dee9; /* Light text */
+    color: #2e3440; /* Dark background */
+}
+.tag a {
+    color: #2e3440; /* Dark text */
+    text-decoration: none;
+}
+.tag a:hover {
+    text-decoration: underline;
+}
 
 .container {
     max-width: 800px;

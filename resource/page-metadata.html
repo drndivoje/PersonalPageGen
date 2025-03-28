@@ -1,4 +1,11 @@
 <div class="post-meta">
     <span class="publish-date">Published on: {{.PublishDateString}}</span>
-<!--     <span class="tags">Tags: <a href="#">Cycling</a>, <a href="#">Kotlin</a>, <a href="#">Ktor</a></span> -->
+    <br>
+    {{if .Tags}}
+    <span class="tags">Tags: 
+    {{range .Tags}}
+        <span class="tag"><a href="/tags/{{.}}">#{{.}}</a></span>
+    {{end}}
+    </span>
+    {{end}}
 </div>
