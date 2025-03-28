@@ -12,7 +12,7 @@ footer {
     padding: 10px 20px;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    
+
 }
 
 header {
@@ -23,19 +23,27 @@ header {
 
 footer {
     margin-top: 20px;
+    text-align: center;
+    font-size: 0.9em;
+    color: #777;
 }
 
 code {
     font-family: "Fira Code", "Consolas", "Courier New", monospace;
-    background-color: #2e3440; /* Dark background */
-    color: #d8dee9; /* Light text */
+    background-color: #2e3440;
+    /* Dark background */
+    color: #d8dee9;
+    /* Light text */
     padding: 10px;
     border-radius: 5px;
     display: block;
     overflow-x: auto;
-    white-space: pre-wrap; /* Wrap text to fit within the container */
-    word-wrap: break-word; /* Break long words to fit within the container */
+    white-space: pre-wrap;
+    /* Wrap text to fit within the container */
+    word-wrap: break-word;
+    /* Break long words to fit within the container */
 }
+
 .post-meta {
     font-size: 0.9em;
     color: #666;
@@ -48,20 +56,27 @@ code {
     font-size: 0.9em;
     color: #666;
 }
+
 .tag {
     display: inline-block;
     padding: 5px;
     border-radius: 3px;
     margin-right: 5px;
 }
+
 .tag:hover {
-    background-color: #d8dee9; /* Light text */
-    color: #2e3440; /* Dark background */
+    background-color: #d8dee9;
+    /* Light text */
+    color: #2e3440;
+    /* Dark background */
 }
+
 .tag a {
-    color: #2e3440; /* Dark text */
+    color: #2e3440;
+    /* Dark text */
     text-decoration: none;
 }
+
 .tag a:hover {
     text-decoration: underline;
 }
@@ -102,11 +117,13 @@ a:hover {
     footer {
         padding: 10px;
     }
+
     .menu {
         display: flex;
         flex-direction: row;
         align-items: center;
     }
+
     .menu li {
         margin: 5px 0;
         font-size: 0.9em;
@@ -127,7 +144,7 @@ nav {
 
 .menu li {
     display: inline;
-    
+
 }
 
 .menu a {
