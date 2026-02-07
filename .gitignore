@@ -26,5 +26,5 @@ go.work.sum
 ppg
 output/**
 .vscode/**
-deployment/data/*
+deployments/data/*
 

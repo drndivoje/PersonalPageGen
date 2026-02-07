@@ -1,6 +1,6 @@
 build:
-	go run . example && cp -r output/* deployment/data/
+	go run ./cmd/ppg examples/simple && cp -r output/* deployments/data/
 clean:
-	rm -rf output/* deployment/data/*
+	rm -rf output/* deployments/data/*
 run: clean build
-	docker compose -f deployment/docker-compose.yml up -d
+	docker compose -f deployments/docker-compose.yml up -d
