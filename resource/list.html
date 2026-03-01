@@ -3,43 +3,11 @@
 
 <head>
     {{.HeadMetadata}}
-    <style>
-        ul.posts {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        ul.posts li {
-            padding: 15px;
-            margin-bottom: 10px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        ul.posts li:hover {
-            background-color: #d6d8db;
-        }
-
-        .publish-date {
-            display: block;
-            margin-top: 5px;
-            font-size: 0.9em;
-            color: #555;
-        }
-
-        .posts h2 {
-            margin: 0;
-            font-size: 1.5em;
-        }
-
-    </style>
 </head>
 
 <body>
     {{.Header}}
-
-    <div class="container">
+    <div class="page">
         <ul class="posts">
             {{range .Pages}}
             <li>

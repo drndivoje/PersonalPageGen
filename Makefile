@@ -1,5 +1,5 @@
 build:
-	go run ./cmd/ppg examples/simple && cp -r output/* deployments/data/
+	go run ./cmd/ppg inputFiles && cp -r output/* deployments/data/
 clean:
 	rm -rf output/* deployments/data/*
 run: clean build

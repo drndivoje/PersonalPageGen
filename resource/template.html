@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
- {{.HeadMetadata}}
- {{ if .MainPage }}
-        <style>
-        .container {
-            font-size: 1.5em;
-        }
-        </style>
-    {{ end }}
+    {{.HeadMetadata}}
 </head>
+
 <body>
     {{.Header}}
- 
-    <div class="container">
+    {{$ClassName := "page"}}
+    {{ if .MainPage }}
+    {{$ClassName = "page front"}}
+    {{ end }}
+    <div class="{{$ClassName}}">
         {{.PageDetails}}
         <p>{{.Content}}</p>
-    </main>
-    {{.Footer}}
+        </main>
+        {{.Footer}}
 </body>
+
 </html>

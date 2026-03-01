@@ -58,6 +58,14 @@ func (p Page) GetDesctiption() string {
 	return description.getValue()
 }
 
+func getFooter(footer *string) string {
+	defaultFooter := "Built with <a href=\"https://github.com/drndivoje/PersonalPageGen\" target=\"_blank\" >Personal Page Gen</a>"
+	if footer == nil {
+		return defaultFooter
+	}
+	return *footer + " - " + defaultFooter
+}
+
 func (p Page) writeToOutput(config ConfigFile) error {
 
 	filePath := "output/" + p.Path + "/index.html"
@@ -68,7 +76,7 @@ func (p Page) writeToOutput(config ConfigFile) error {
 	data := template.PageData{
 		Header:       template.GetHeader(template.HeaderData{DomainUrl: config.getDomainUrl(), Menu: toMenuItem(config)}),
 		Content:      p.Html,
-		Footer:       template.GetFooter(config.Footer),
+		Footer:       template.GetFooter(getFooter(&config.Footer)),
 		PageDetails:  pageMetaData,
 		HeadMetadata: getHeadMetaData(p, config.getDomainUrl()),
 		MainPage:     p.isMainPage(),
@@ -102,20 +110,20 @@ type WebSite struct {
 	ConfigFile *ConfigFile
 }
 
-func (w *WebSite) WriteToOutputFolder() {
-	for _, page := range w.pages {
-		err := page.writeToOutput(*w.ConfigFile)
+func writePages(pages []Page, config ConfigFile) error {
+	for _, page := range pages {
+		err := page.writeToOutput(config)
 		if err != nil {
-			return
+			log.Println("Error writing page ["+page.Title+"] to the file:", err)
+			return err
 		}
 	}
+	return nil
+}
 
-	for _, page := range w.blogPages {
-		err := page.writeToOutput(*w.ConfigFile)
-		if err != nil {
-			return
-		}
-	}
+func (w *WebSite) WriteToOutputFolder() {
+	writePages(w.pages, *w.ConfigFile)
+	writePages(w.blogPages, *w.ConfigFile)
 
 	output.CopyStaticFiles(w.InputFolder)
 
@@ -171,7 +179,7 @@ func createPageListData(pageItems []template.PageItemData, w WebSite) template.P
 	return template.PageListData{
 		Header: template.GetHeader(template.HeaderData{DomainUrl: w.getDomainUrl(), Menu: toMenuItem(*w.ConfigFile)}),
 		Pages:  pageItems,
-		Footer: template.GetFooter(w.ConfigFile.Footer),
+		Footer: template.GetFooter(getFooter(&w.ConfigFile.Footer)),
 		HeadMetadata: template.GetHeadMetada(
 			template.HeadMetadata{
 				Title:       w.ConfigFile.Author + "'s Blog",
@@ -194,7 +202,7 @@ func getHeadMetaData(page Page, domainUrl string) string {
 }
 
 func (w WebSite) getDomainUrl() string {
-	return "http://" + w.ConfigFile.Domain
+	return "https://" + w.ConfigFile.Domain
 }
 
 func (w *WebSite) String() string {
