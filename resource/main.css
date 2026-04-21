@@ -82,6 +82,11 @@ code {
     font-size: 1.5em;
 }
 
+.front img {
+    float: left;
+    margin-right: 30px;
+}
+
 @media (max-width: 600px) {
     .front {
         font-size: 1em;
