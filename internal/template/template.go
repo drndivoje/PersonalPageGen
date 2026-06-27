@@ -9,20 +9,20 @@ import (
 var path = "resource"
 
 type PageData struct {
-	Header       string
-	Content      string
-	Footer       string
-	PageDetails  string
-	HeadMetadata string
-	MainPage     bool
-	Tags         []string
+	MenuSection string
+	Content     string
+	Footer      string
+	PageDetails string
+	HeadSection string
+	MainPage    bool
+	Tags        []string
 }
 
 type PageListData struct {
-	Header       string
-	Pages        []PageItemData
-	Footer       string
-	HeadMetadata string
+	Header      string
+	Pages       []PageItemData
+	Footer      string
+	HeadSection string
 }
 
 type PageItemData struct {
@@ -46,7 +46,7 @@ type PageDetails struct {
 	Tags              []string
 }
 
-type HeadMetadata struct {
+type HeadSection struct {
 	Title       string
 	DomainUrl   string
 	Author      string
@@ -83,6 +83,6 @@ func GetPageDetails(date int64, tags []string) string {
 			Tags:              tags})
 }
 
-func GetHeadMetada(headMetadata HeadMetadata) string {
-	return ParseTemplate("head.html", headMetadata)
+func GetHeadSection(HeadSection HeadSection) string {
+	return ParseTemplate("head.html", HeadSection)
 }

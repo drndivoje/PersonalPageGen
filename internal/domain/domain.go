@@ -74,13 +74,13 @@ func (p Page) writeToOutput(config ConfigFile) error {
 		pageMetaData = template.GetPageDetails(p.PublishDate, p.Header.getTags())
 	}
 	data := template.PageData{
-		Header:       template.GetHeader(template.HeaderData{DomainUrl: config.getDomainUrl(), Menu: toMenuItem(config)}),
-		Content:      p.Html,
-		Footer:       template.GetFooter(getFooter(&config.Footer)),
-		PageDetails:  pageMetaData,
-		HeadMetadata: getHeadMetaData(p, config.getDomainUrl()),
-		MainPage:     p.isMainPage(),
-		Tags:         p.Header.getTags(),
+		MenuSection: template.GetHeader(template.HeaderData{DomainUrl: config.getDomainUrl(), Menu: toMenuItem(config)}),
+		Content:     p.Html,
+		Footer:      template.GetFooter(getFooter(&config.Footer)),
+		PageDetails: pageMetaData,
+		HeadSection: getHeadSection(p, config.getDomainUrl()),
+		MainPage:    p.isMainPage(),
+		Tags:        p.Header.getTags(),
 	}
 	pageHtml := template.ParseTemplate("template.html", data)
 	if p.isMainPage() {
@@ -180,8 +180,8 @@ func createPageListData(pageItems []template.PageItemData, w WebSite) template.P
 		Header: template.GetHeader(template.HeaderData{DomainUrl: w.getDomainUrl(), Menu: toMenuItem(*w.ConfigFile)}),
 		Pages:  pageItems,
 		Footer: template.GetFooter(getFooter(&w.ConfigFile.Footer)),
-		HeadMetadata: template.GetHeadMetada(
-			template.HeadMetadata{
+		HeadSection: template.GetHeadSection(
+			template.HeadSection{
 				Title:       w.ConfigFile.Author + "'s Blog",
 				Description: "Welcome to " + w.ConfigFile.Author + "'s Blog",
 				DomainUrl:   w.getDomainUrl(),
@@ -190,9 +190,9 @@ func createPageListData(pageItems []template.PageItemData, w WebSite) template.P
 	}
 }
 
-func getHeadMetaData(page Page, domainUrl string) string {
-	return template.GetHeadMetada(
-		template.HeadMetadata{
+func getHeadSection(page Page, domainUrl string) string {
+	return template.GetHeadSection(
+		template.HeadSection{
 			Title:       page.Header.getTitle(),
 			Description: page.GetDesctiption(),
 			DomainUrl:   domainUrl,
