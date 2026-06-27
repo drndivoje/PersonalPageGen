@@ -1,5 +1,7 @@
 # PersonalPageGen
 
+[![CI](https://github.com/drndivoje/PersonalPageGen/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/drndivoje/PersonalPageGen/actions/workflows/ci.yml)
+
 PersonalPageGen is a command-line application that generates a static website from markdown files. This tool helps you quickly create and deploy a personal blog as a static website.
 
 ## Input file structure
