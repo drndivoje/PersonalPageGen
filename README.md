@@ -2,57 +2,99 @@
 
 [![CI](https://github.com/drndivoje/PersonalPageGen/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/drndivoje/PersonalPageGen/actions/workflows/ci.yml)
 
-PersonalPageGen is a command-line application that generates a static website from markdown files. This tool helps you quickly create and deploy a personal blog as a static website.
+PersonalPageGen is a command-line tool that generates a static website from Markdown files. It is designed for personal blogs and websites.
 
-## Input file structure
+## Requirements
 
-
-The input folder is where all your content for the static website in markdown format is stored. To use PersonalPageGen, ensure that your input folder contains a `config.yaml` file with the following structure:
-```yaml
-domain: <your domain>
-author: <your name>
-menu:
-  - title: About
-    path: about
-  - title: Blog
-    path: blog
-```
-- `domain`: Your domain, for example, `example.com`.
-- `author`: Your name.
-- `menu`: A list of menu items that will be rendered as a horizontal menu bar. `title` is the label for each menu item, and `path` is the path to the corresponding page.
-
-The sample page in markdown format look like:
-```
-+++
-title=Page title
-date=2025-02-24
-+++
-
-Your content goes here
-The header of the page is enclosed between `+++` characters. The header contains the following properties:
-- **title**: The title of the page.
-- **date**: The date when the page is published.
-
-
-Since PersonalPageGen is designed for personal websites, which typically include blog pages, the input folder should also contain a `blog` subfolder where your blog posts are stored.
+- Go 1.18+
+- Docker (optional, for local preview)
 
 ## Installation
 
-To install PersonalPageGen, clone the repository and build the application:
+```sh
+git clone https://github.com/drndivoje/PersonalPageGen.git
+cd PersonalPageGen
+make build
+```
+
+## Usage
 
 ```sh
-git clone https://github.com/yourusername/PersonalPageGen.git
-cd PersonalPageGen
+./ppg <input-folder>
 ```
-To build the static website from the files inside the example folder and deploy it on an Nginx container locally, follow these steps. The local setup uses self-signed certificates, so you will need to trust the certificate before accessing the website locally at `https://localhost`.
+
+Generated files are written to the `output/` directory.
+
+## Input folder structure
+
+```
+input/
+├── config.yml
+├── index.md
+├── about.md
+└── blog/
+    ├── first-post.md
+    └── second-post.md
+```
+
+### config.yml
+
+```yaml
+domain: example.com
+author: Your Name
+footer: '© 2025 Your Name'
+menu:
+  - title: Blog
+    path: blog
+  - title: About
+    path: about
+```
+
+- `domain` — your domain name
+- `author` — your name
+- `footer` — footer text (HTML allowed)
+- `menu` — list of navigation items; `path` must match a subfolder or page name
+
+### Page format
+
+Every Markdown file starts with a header block enclosed in `+++`:
+
+```
++++
+title = Page Title
+date = 2025-02-24
+tags = [go, programming]
++++
+
+Your content goes here.
+```
+
+- `title` — page title (required)
+- `date` — publish date in `YYYY-MM-DD` format
+- `tags` — comma-separated list of tags in square brackets
+
+The content below the header is standard Markdown.
+
+## Make targets
+
+| Target          | Description                                      |
+|-----------------|--------------------------------------------------|
+| `make build`    | Compile the binary to `./ppg`                    |
+| `make test`     | Run all tests                                    |
+| `make coverage` | Run tests with coverage and open an HTML report  |
+| `make clean`    | Remove the binary, coverage file, and output     |
+| `make run`      | Build, generate the example site, start Docker   |
+
+## Local preview with Docker
+
+`make run` builds the example site and serves it on an Nginx container with a self-signed certificate:
 
 ```sh
 make run
 ```
 
-After running the command, open your browser and navigate to `https://localhost`. Since the setup uses self-signed certificates, you will need to add an exception in your browser to trust the certificate.
+Then open `https://localhost` in your browser. You will need to accept the self-signed certificate.
 
-## Development Status
+## Development status
 
-PersonalPageGen is still a work in progress. Theming is not yet supported, and custom CSS must be manually adapted. If you want to apply your own CSS styles, you need to modify `resource/main.css`.
-
+PersonalPageGen is a work in progress. Custom theming is not yet supported — to change the appearance, modify `resource/main.css` directly.
