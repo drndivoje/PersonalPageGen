@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/drndivoje/PersonalPageGen/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/drndivoje/PersonalPageGen/actions/workflows/ci.yml)
 
-PersonalPageGen is a command-line tool that generates a static website from Markdown files. It is designed for personal blogs and websites.
+A command-line tool that generates a static website from Markdown files, designed for personal blogs and websites.
+
+**Live example:** [drnd.rocks](https://drnd.rocks/)
 
 ## Requirements
 
@@ -23,7 +25,7 @@ make build
 ./ppg <input-folder>
 ```
 
-Generated files are written to the `output/` directory.
+Generated files are written to `output/`.
 
 ## Input folder structure
 
@@ -50,14 +52,16 @@ menu:
     path: about
 ```
 
-- `domain` — your domain name
-- `author` — your name
-- `footer` — footer text (HTML allowed)
-- `menu` — list of navigation items; `path` must match a subfolder or page name
+| Field    | Description                                                    |
+|----------|----------------------------------------------------------------|
+| `domain` | Your domain name                                               |
+| `author` | Your name                                                      |
+| `footer` | Footer text (HTML allowed)                                     |
+| `menu`   | Navigation items; `path` must match a subfolder or page name  |
 
 ### Page format
 
-Every Markdown file starts with a header block enclosed in `+++`:
+Every Markdown file begins with a `+++` header block:
 
 ```
 +++
@@ -69,11 +73,11 @@ tags = [go, programming]
 Your content goes here.
 ```
 
-- `title` — page title (required)
-- `date` — publish date in `YYYY-MM-DD` format
-- `tags` — comma-separated list of tags in square brackets
-
-The content below the header is standard Markdown.
+| Field   | Description                              |
+|---------|------------------------------------------|
+| `title` | Page title (required)                    |
+| `date`  | Publish date (`YYYY-MM-DD`)              |
+| `tags`  | Comma-separated list in square brackets  |
 
 ## Make targets
 
@@ -83,18 +87,18 @@ The content below the header is standard Markdown.
 | `make test`     | Run all tests                                    |
 | `make coverage` | Run tests with coverage and open an HTML report  |
 | `make clean`    | Remove the binary, coverage file, and output     |
-| `make run`      | Build, generate the example site, start Docker   |
+| `make run`      | Build, generate the site, and start Docker       |
 
-## Local preview with Docker
+## Local preview
 
-`make run` builds the example site and serves it on an Nginx container with a self-signed certificate:
+`make run` generates the site and serves it via an Nginx container with a self-signed certificate:
 
 ```sh
 make run
 ```
 
-Then open `https://localhost` in your browser. You will need to accept the self-signed certificate.
+Open `https://localhost` in your browser and accept the self-signed certificate.
 
-## Development status
+## Status
 
-PersonalPageGen is a work in progress. Custom theming is not yet supported — to change the appearance, modify `resource/main.css` directly.
+Work in progress. Custom theming is not yet supported — to change the appearance, edit `resource/main.css` directly.
