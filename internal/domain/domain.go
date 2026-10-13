@@ -19,7 +19,7 @@ import (
 )
 
 type Page struct {
-	Header      Header
+	Header      Metadata
 	Title       string
 	Path        string
 	PublishDate int64
@@ -50,7 +50,7 @@ func (p Page) GetAuthor() string {
 	return author.getValue()
 }
 
-func (p Page) GetDesctiption() string {
+func (p Page) GetDescription() string {
 	description, ok := p.Header.Attributes["description"]
 	if !ok {
 		return "Unknown"
@@ -194,7 +194,7 @@ func getHeadSection(page Page, domainUrl string) string {
 	return template.GetHeadSection(
 		template.HeadSection{
 			Title:       page.Header.getTitle(),
-			Description: page.GetDesctiption(),
+			Description: page.GetDescription(),
 			DomainUrl:   domainUrl,
 			Author:      page.GetAuthor(),
 		},
@@ -239,16 +239,16 @@ func loadConfig(folderPath string) (*ConfigFile, error) {
 	return &config, nil
 }
 
-func parseHeader(content []byte) (Header, error) {
+func parseHeader(content []byte) (Metadata, error) {
 
 	const headerDelimiter = "+++"
 
 	lines := strings.Split(string(content), "\n")
 	if len(lines) == 0 || lines[0] != headerDelimiter {
-		return Header{}, fmt.Errorf("header does not start with +++")
+		return Metadata{}, fmt.Errorf("header does not start with +++")
 	}
 
-	header := Header{Attributes: make(map[string]HeaderAttribute)}
+	header := Metadata{Attributes: make(map[string]MetadataAttribute)}
 	for _, line := range lines[1:] {
 
 		if line == headerDelimiter {
@@ -264,19 +264,19 @@ func parseHeader(content []byte) (Header, error) {
 	return header, nil
 }
 
-func parseHeaderAttribute(line string) (HeaderAttribute, error) {
+func parseHeaderAttribute(line string) (MetadataAttribute, error) {
 	line = strings.TrimSpace(line)
 	if line == "" {
-		return HeaderAttribute{}, fmt.Errorf("empty line")
+		return MetadataAttribute{}, fmt.Errorf("empty line")
 	}
 	parts := strings.SplitN(line, "=", 2)
 	if len(parts) != 2 {
-		return HeaderAttribute{}, fmt.Errorf("cannot parse line: %s", line)
+		return MetadataAttribute{}, fmt.Errorf("cannot parse line: %s", line)
 	}
 	key := strings.TrimSpace(parts[0])
 	value := strings.TrimSpace(parts[1])
 	if value == "" {
-		return HeaderAttribute{}, fmt.Errorf("value cannot be an empty string")
+		return MetadataAttribute{}, fmt.Errorf("value cannot be an empty string")
 	}
 	if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
 		value = strings.Trim(value, "[]")
@@ -284,32 +284,32 @@ func parseHeaderAttribute(line string) (HeaderAttribute, error) {
 		for i := range values {
 			values[i] = strings.TrimSpace(values[i])
 		}
-		return HeaderAttribute{name: key, values: values}, nil
+		return MetadataAttribute{name: key, values: values}, nil
 	} else if strings.HasPrefix(value, "[") || strings.HasSuffix(value, "]") {
-		return HeaderAttribute{}, fmt.Errorf("invalid list format")
+		return MetadataAttribute{}, fmt.Errorf("invalid list format")
 	}
 
-	return HeaderAttribute{name: key, values: []string{value}}, nil
+	return MetadataAttribute{name: key, values: []string{value}}, nil
 }
 
-type Header struct {
-	Attributes map[string]HeaderAttribute
+type Metadata struct {
+	Attributes map[string]MetadataAttribute
 }
 
-type HeaderAttribute struct {
+type MetadataAttribute struct {
 	name   string
 	values []string
 }
 
-func (h HeaderAttribute) getValue() string {
+func (h MetadataAttribute) getValue() string {
 	return h.values[0]
 }
 
-func (h HeaderAttribute) getValues() []string {
+func (h MetadataAttribute) getValues() []string {
 	return h.values
 }
 
-func (h Header) getTitle() string {
+func (h Metadata) getTitle() string {
 	title, ok := h.Attributes["title"]
 	if !ok {
 		return ""
@@ -317,7 +317,7 @@ func (h Header) getTitle() string {
 	return strings.ReplaceAll(title.getValue(), "\"", "")
 }
 
-func (h Header) getTags() []string {
+func (h Metadata) getTags() []string {
 	tags, ok := h.Attributes["tags"]
 	if !ok {
 		return []string{}
@@ -325,7 +325,7 @@ func (h Header) getTags() []string {
 	return tags.getValues()
 }
 
-func getDate(header Header) int64 {
+func getDate(header Metadata) int64 {
 	date, ok := header.Attributes["date"]
 	if !ok {
 		return 0
@@ -339,7 +339,7 @@ func getDate(header Header) int64 {
 	return int64(parsedDate.Unix())
 }
 
-func NewWebSiteFromFolder(folderPath string) (*WebSite, error) {
+func CreateWebSite(folderPath string) (*WebSite, error) {
 
 	err := input.ValidateInputFolder(folderPath)
 	if err != nil {
