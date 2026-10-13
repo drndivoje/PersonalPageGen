@@ -49,6 +49,7 @@ type PageDetails struct {
 type HeadSection struct {
 	Title       string
 	DomainUrl   string
+	PagePath    string
 	Author      string
 	Description string
 }

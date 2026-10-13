@@ -13,6 +13,7 @@ coverage:
 clean:
 	rm -f ppg coverage.out
 	rm -rf output/*
+	rm -rf deployments/data/*
 
 run: clean build
 	./ppg examples/simple

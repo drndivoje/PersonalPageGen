@@ -19,41 +19,28 @@ import (
 )
 
 type Page struct {
-	Header      Metadata
-	Title       string
-	Path        string
-	PublishDate int64
-	Data        string
-	Html        string
+	Metadata Metadata
+	Path     string
+	Data     string
+	Html     string
+}
+
+func (p Page) getTitle() string {
+	return p.Metadata.getTitle()
+}
+
+func (p Page) getPublishDate() int64 {
+	return p.Metadata.getPublishDate()
 }
 
 func (p Page) isMainPage() bool {
 	return p.Path == "index"
 }
 
-func toMenuItem(config ConfigFile) []template.MenuItem {
-	var menuItems []template.MenuItem
-	for _, item := range config.Menu {
-		menuItems = append(menuItems, template.MenuItem{
-			Title: item.Title,
-			Url:   config.getDomainUrl() + "/" + item.Path,
-		})
-	}
-	return menuItems
-}
-
-func (p Page) GetAuthor() string {
-	author, ok := p.Header.Attributes["author"]
-	if !ok {
-		return "Unknown"
-	}
-	return author.getValue()
-}
-
 func (p Page) GetDescription() string {
-	description, ok := p.Header.Attributes["description"]
+	description, ok := p.Metadata.Attributes["description"]
 	if !ok {
-		return "Unknown"
+		return p.getTitle()
 	}
 	return description.getValue()
 }
@@ -70,17 +57,17 @@ func (p Page) writeToOutput(config ConfigFile) error {
 
 	filePath := "output/" + p.Path + "/index.html"
 	pageMetaData := ""
-	if p.PublishDate != 0 {
-		pageMetaData = template.GetPageDetails(p.PublishDate, p.Header.getTags())
+	if p.getPublishDate() != 0 {
+		pageMetaData = template.GetPageDetails(p.getPublishDate(), p.Metadata.getTags())
 	}
 	data := template.PageData{
 		MenuSection: template.GetHeader(template.HeaderData{DomainUrl: config.getDomainUrl(), Menu: toMenuItem(config)}),
 		Content:     p.Html,
 		Footer:      template.GetFooter(getFooter(&config.Footer)),
 		PageDetails: pageMetaData,
-		HeadSection: getHeadSection(p, config.getDomainUrl()),
+		HeadSection: getHeadSection(p, config),
 		MainPage:    p.isMainPage(),
-		Tags:        p.Header.getTags(),
+		Tags:        p.Metadata.getTags(),
 	}
 	pageHtml := template.ParseTemplate("template.html", data)
 	if p.isMainPage() {
@@ -90,14 +77,14 @@ func (p Page) writeToOutput(config ConfigFile) error {
 	}
 	err := os.WriteFile(filePath, []byte(pageHtml), 0644)
 	if err != nil {
-		log.Println("Error writing page ["+p.Title+"] to the file:", err)
+		log.Println("Error writing page ["+p.getTitle()+"] to the file:", err)
 		return err
 	}
 	return nil
 }
 
 func (p Page) String() string {
-	return fmt.Sprintf("Title: %s\nPath: %s\nDate: %d\n", p.Title, p.Path, p.PublishDate)
+	return fmt.Sprintf("Title: %s\nPath: %s\nDate: %d\n", p.getTitle(), p.Path, p.getPublishDate())
 }
 
 type WebSite struct {
@@ -108,17 +95,6 @@ type WebSite struct {
 	InputFolder string
 
 	ConfigFile *ConfigFile
-}
-
-func writePages(pages []Page, config ConfigFile) error {
-	for _, page := range pages {
-		err := page.writeToOutput(config)
-		if err != nil {
-			log.Println("Error writing page ["+page.Title+"] to the file:", err)
-			return err
-		}
-	}
-	return nil
 }
 
 func (w *WebSite) WriteToOutputFolder() {
@@ -132,18 +108,18 @@ func (w *WebSite) WriteToOutputFolder() {
 
 	for _, page := range w.blogPages {
 		pageItem := template.PageItemData{
-			Title: page.Title,
-			Date:  time.Unix(page.PublishDate, 0).Format("January 2, 2006"),
+			Title: page.getTitle(),
+			Date:  time.Unix(page.getPublishDate(), 0).Format("January 2, 2006"),
 			Url:   page.Path,
-			Tags:  page.Header.getTags(),
+			Tags:  page.Metadata.getTags(),
 		}
 		pageItems = append(pageItems, pageItem)
-		for _, tag := range page.Header.getTags() {
+		for _, tag := range page.Metadata.getTags() {
 			tagtoPagesMap[tag] = append(tagtoPagesMap[tag], template.PageItemData{
-				Title: page.Title,
-				Date:  time.Unix(page.PublishDate, 0).Format("January 2, 2006"),
+				Title: page.getTitle(),
+				Date:  time.Unix(page.getPublishDate(), 0).Format("January 2, 2006"),
 				Url:   page.Path,
-				Tags:  page.Header.getTags(),
+				Tags:  page.Metadata.getTags(),
 			})
 		}
 	}
@@ -190,13 +166,14 @@ func createPageListData(pageItems []template.PageItemData, w WebSite) template.P
 	}
 }
 
-func getHeadSection(page Page, domainUrl string) string {
+func getHeadSection(page Page, config ConfigFile) string {
 	return template.GetHeadSection(
 		template.HeadSection{
-			Title:       page.Header.getTitle(),
+			Title:       page.Metadata.getTitle(),
 			Description: page.GetDescription(),
-			DomainUrl:   domainUrl,
-			Author:      page.GetAuthor(),
+			DomainUrl:   config.getDomainUrl(),
+			Author:      config.Author,
+			PagePath:    page.Path,
 		},
 	)
 }
@@ -264,34 +241,6 @@ func parseHeader(content []byte) (Metadata, error) {
 	return header, nil
 }
 
-func parseHeaderAttribute(line string) (MetadataAttribute, error) {
-	line = strings.TrimSpace(line)
-	if line == "" {
-		return MetadataAttribute{}, fmt.Errorf("empty line")
-	}
-	parts := strings.SplitN(line, "=", 2)
-	if len(parts) != 2 {
-		return MetadataAttribute{}, fmt.Errorf("cannot parse line: %s", line)
-	}
-	key := strings.TrimSpace(parts[0])
-	value := strings.TrimSpace(parts[1])
-	if value == "" {
-		return MetadataAttribute{}, fmt.Errorf("value cannot be an empty string")
-	}
-	if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
-		value = strings.Trim(value, "[]")
-		values := strings.Split(value, ",")
-		for i := range values {
-			values[i] = strings.TrimSpace(values[i])
-		}
-		return MetadataAttribute{name: key, values: values}, nil
-	} else if strings.HasPrefix(value, "[") || strings.HasSuffix(value, "]") {
-		return MetadataAttribute{}, fmt.Errorf("invalid list format")
-	}
-
-	return MetadataAttribute{name: key, values: []string{value}}, nil
-}
-
 type Metadata struct {
 	Attributes map[string]MetadataAttribute
 }
@@ -325,8 +274,8 @@ func (h Metadata) getTags() []string {
 	return tags.getValues()
 }
 
-func getDate(header Metadata) int64 {
-	date, ok := header.Attributes["date"]
+func (h Metadata) getPublishDate() int64 {
+	date, ok := h.Attributes["date"]
 	if !ok {
 		return 0
 	}
@@ -367,27 +316,23 @@ func CreateWebSite(folderPath string) (*WebSite, error) {
 				return err
 			}
 
-			header, err := parseHeader(content)
+			metadata, err := parseHeader(content)
 			if err != nil {
 				return err
 			}
 
-			pageContent, err := input.ParsePageContent(content, header.getTitle())
+			pageContent, err := input.ParsePageContent(content, metadata.getTitle())
 			if err != nil {
 				return err
 			}
-
-			pageDate := getDate(header)
 
 			htmlOutput := blackfriday.Run([]byte(pageContent))
 			if htmlOutput != nil {
 				page := Page{
-					Header:      header,
-					Title:       header.getTitle(),
-					PublishDate: pageDate,
-					Data:        string(content),
-					Path:        relativePath,
-					Html:        string(htmlOutput),
+					Metadata: metadata,
+					Data:     string(content),
+					Path:     relativePath,
+					Html:     string(htmlOutput),
 				}
 				if strings.HasPrefix(relativePath, "blog") {
 					blogPages = append(blogPages, page)
@@ -401,7 +346,7 @@ func CreateWebSite(folderPath string) (*WebSite, error) {
 		return nil
 	})
 	sort.Slice(blogPages, func(i, j int) bool {
-		return blogPages[i].PublishDate > blogPages[j].PublishDate
+		return blogPages[i].getPublishDate() > blogPages[j].getPublishDate()
 	})
 	if err != nil {
 		return nil, err
@@ -413,4 +358,54 @@ func CreateWebSite(folderPath string) (*WebSite, error) {
 		InputFolder: folderPath,
 		ConfigFile:  config,
 	}, nil
+}
+
+func toMenuItem(config ConfigFile) []template.MenuItem {
+	var menuItems []template.MenuItem
+	for _, item := range config.Menu {
+		menuItems = append(menuItems, template.MenuItem{
+			Title: item.Title,
+			Url:   config.getDomainUrl() + "/" + item.Path,
+		})
+	}
+	return menuItems
+}
+
+func parseHeaderAttribute(line string) (MetadataAttribute, error) {
+	line = strings.TrimSpace(line)
+	if line == "" {
+		return MetadataAttribute{}, fmt.Errorf("empty line")
+	}
+	parts := strings.SplitN(line, "=", 2)
+	if len(parts) != 2 {
+		return MetadataAttribute{}, fmt.Errorf("cannot parse line: %s", line)
+	}
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+	if value == "" {
+		return MetadataAttribute{}, fmt.Errorf("value cannot be an empty string")
+	}
+	if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
+		value = strings.Trim(value, "[]")
+		values := strings.Split(value, ",")
+		for i := range values {
+			values[i] = strings.TrimSpace(values[i])
+		}
+		return MetadataAttribute{name: key, values: values}, nil
+	} else if strings.HasPrefix(value, "[") || strings.HasSuffix(value, "]") {
+		return MetadataAttribute{}, fmt.Errorf("invalid list format")
+	}
+
+	return MetadataAttribute{name: key, values: []string{value}}, nil
+}
+
+func writePages(pages []Page, config ConfigFile) error {
+	for _, page := range pages {
+		err := page.writeToOutput(config)
+		if err != nil {
+			log.Println("Error writing page ["+page.getTitle()+"] to the file:", err)
+			return err
+		}
+	}
+	return nil
 }
