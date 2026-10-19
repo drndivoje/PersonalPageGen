@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+
 func ValidateInputFolder(folderPath string) error {
 	info, err := os.Stat(folderPath)
 	if err != nil {
@@ -42,7 +43,7 @@ func ParsePagePath(rootFolder, pageFolder string) (string, error) {
 		return "", err
 	}
 	relativePath = strings.TrimSuffix(relativePath, ".md")
-
+    
 	return relativePath, nil
 }
 func ParsePageContent(content []byte, title string) (string, error) {

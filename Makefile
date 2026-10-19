@@ -1,10 +1,11 @@
 .PHONY: build test coverage clean run
 
 build:
+	go clean -cache -testcache
 	go build -o ppg ./cmd/ppg
 
 test:
-	go test ./...
+	go test ./... -v
 
 coverage:
 	go test -coverprofile=coverage.out -covermode=atomic ./...

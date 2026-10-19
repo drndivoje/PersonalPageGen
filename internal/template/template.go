@@ -3,10 +3,13 @@ package template
 import (
 	"strings"
 	template "text/template"
-	"time"
 )
 
 var path = "resource"
+
+type Parsable interface {
+	Parse() string
+}
 
 type PageData struct {
 	MenuSection string
@@ -41,9 +44,16 @@ type HeaderData struct {
 	Menu      []MenuItem
 }
 
+type LocalPageItem struct {
+	Path     string
+	Language string
+}
+
 type PageDetails struct {
+	Language          string
 	PublishDateString string
 	Tags              []string
+	LocalePages       []LocalPageItem
 }
 
 type HeadSection struct {
@@ -57,7 +67,8 @@ type FooterData struct {
 	Data string
 }
 
-func ParseTemplate(pathToTemplate string, data any) string {
+
+func ParseTemplate(pathToTemplate string, data Parsable) string {
 	tmpl, err := template.ParseFiles(path + "/" + pathToTemplate)
 	if err != nil {
 		panic(err)
@@ -70,20 +81,61 @@ func ParseTemplate(pathToTemplate string, data any) string {
 	return output.String()
 }
 
-func GetHeader(headerData HeaderData) string {
-	return ParseTemplate("header.html", headerData)
-}
-func GetFooter(data string) string {
-	return ParseTemplate("footer.html", FooterData{Data: data})
+func (data PageData) Parse() string {
+	return ParseTemplate("template.html", data)
 }
 
-func GetPageDetails(date int64, tags []string) string {
-	return ParseTemplate("page-metadata.html",
-		PageDetails{
-			PublishDateString: time.Unix(date, 0).Format("January 2, 2006"),
-			Tags:              tags})
+func (data PageListData) Parse() string {
+	return ParseTemplate("list.html", data)
+}
+
+func (data HeaderData) Parse() string {
+	return ParseTemplate("header.html", data)
+}
+
+func (data FooterData) Parse() string {
+	return ParseTemplate("footer.html", data)
+}
+
+func (data PageDetails) Parse() string {
+	filteredLocalePages := make([]LocalPageItem, 0, len(data.LocalePages))
+	for _, localePage := range data.LocalePages {
+		if data.Language != localePage.Language {
+			filteredLocalePages = append(filteredLocalePages, localePage)
+		}
+	}
+	data.LocalePages = filteredLocalePages
+	return ParseTemplate("page-metadata.html", data)
+}
+
+func (data HeadSection) Parse() string {
+	return ParseTemplate("head.html", data)
+}
+
+func GetHeader(headerData HeaderData) string {
+	return headerData.Parse()
+}
+
+func GetFooter(data string) string {
+	return FooterData{Data: data}.Parse()
+}
+
+func GetPageDetails(date string, tags []string, localePages []LocalPageItem) string {
+	return NewPageDetails("", date, tags, localePages).Parse()
+}
+
+func NewPageDetails(language string, publishDateString string, tags []string, localePages []LocalPageItem) PageDetails {
+	if localePages == nil {
+		localePages = []LocalPageItem{}
+	}
+	return PageDetails{
+		Language:          language,
+		PublishDateString: publishDateString,
+		Tags:              tags,
+		LocalePages:       localePages,
+	}
 }
 
 func GetHeadSection(HeadSection HeadSection) string {
-	return ParseTemplate("head.html", HeadSection)
+	return HeadSection.Parse()
 }
