@@ -503,7 +503,7 @@ func createPageListData(pageItems []template.PageItemData, w WebSite) template.P
 }
 
 func insertSort(data []Page, el Page) []Page {
-	index := sort.Search(len(data), func(i int) bool { return data[i].getPublishDate() > el.getPublishDate() })
+	index := sort.Search(len(data), func(i int) bool { return data[i].getPublishDate() < el.getPublishDate() })
 	data = append(data, Page{})
 	copy(data[index+1:], data[index:])
 	data[index] = el
