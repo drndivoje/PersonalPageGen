@@ -92,11 +92,17 @@ func writeAllPages(pages []Page, config ConfigFile) error {
 		}
 		footer := template.GetFooter(config.GetFooter())
 		HeadSection := getHeadSection(page, config)
+		var pageDetailsParsed string
+		if page.isBlogPage() {
+			pageDetailsParsed = pageDetails.Parse()
+		} else {
+			pageDetailsParsed = ""
+		}
 		pageData := template.PageData{
 			MenuSection: template.GetHeader(template.HeaderData{DomainUrl: config.getDomainUrl(), Menu: toMenuItem(config)}),
 			Content:     page.Html,
 			Footer:      footer,
-			PageDetails: pageDetails.Parse(),
+			PageDetails: pageDetailsParsed,
 			HeadSection: HeadSection,
 			MainPage:    page.isMainPage(),
 			Tags:        page.Metadata.getTags(),
@@ -478,7 +484,7 @@ func parseHeaderAttribute(line string) (MetadataAttribute, error) {
 
 func writePageList(pages template.PageListData, path string) error {
 	pageListHtml := pages.Parse()
-	log.Println("Writing page " + fmt.Sprintf("%d", len(pages.Pages)) + " list to", path)
+	log.Println("Writing page "+fmt.Sprintf("%d", len(pages.Pages))+" list to", path)
 	output.CreateDir(path)
 	err := os.WriteFile(path+"/index.html", []byte(pageListHtml), 0644)
 	if err != nil {
