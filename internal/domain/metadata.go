@@ -108,3 +108,31 @@ func parseMetadata(content []byte, relativePath string) (Metadata, error) {
 	}
 	return header, nil
 }
+
+func parseHeaderAttribute(line string) (MetadataAttribute, error) {
+	line = strings.TrimSpace(line)
+	if line == "" {
+		return MetadataAttribute{}, fmt.Errorf("empty line")
+	}
+	parts := strings.SplitN(line, "=", 2)
+	if len(parts) != 2 {
+		return MetadataAttribute{}, fmt.Errorf("cannot parse line: %s", line)
+	}
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+	if value == "" {
+		return MetadataAttribute{}, fmt.Errorf("value cannot be an empty string")
+	}
+	if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
+		value = strings.Trim(value, "[]")
+		values := strings.Split(value, ",")
+		for i := range values {
+			values[i] = strings.TrimSpace(values[i])
+		}
+		return MetadataAttribute{name: key, values: values}, nil
+	} else if strings.HasPrefix(value, "[") || strings.HasSuffix(value, "]") {
+		return MetadataAttribute{}, fmt.Errorf("invalid list format")
+	}
+
+	return MetadataAttribute{name: key, values: []string{value}}, nil
+}
